@@ -1,0 +1,57 @@
+name: Smart Changelog Action Bot
+
+on:
+  push:
+    branches: [main, master]
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - '.github/workflows/changelog-bot.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-changelog:
+    name: Smart Changelog Synchronization & Loop Guard
+    # Layer 1 & 2 Guard: Abort if commit has [skip ci], is automated changelog, or triggered by bot actor
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, '[ci skip]') &&
+      !contains(github.event.head_commit.message, '[auto-changelog]') &&
+      github.actor != 'github-actions[bot]' &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Smart Changelog Generator
+        run: |
+          node scripts/update-changelog.js
+
+      - name: Commit and Push Changelog Update
+        run: |
+          # Layer 3 Guard: Diff check - abort if no actual changes to CHANGELOG.md
+          if git diff --quiet CHANGELOG.md; then
+            echo "No new changelog entries recorded. Exiting cleanly."
+            exit 0
+          fi
+
+          echo "Staging updated CHANGELOG.md..."
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+
+          # CRITICAL ANTI-RECURSION: [skip ci] and [auto-changelog] prevents GitHub Actions re-triggering
+          git commit -m "docs(changelog): automated update via Action Bot [auto-changelog] [skip ci]"
+          git push

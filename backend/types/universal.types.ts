@@ -39,6 +39,45 @@ export interface UniversalOutboundMessage {
   latencyMs: number;
   provider: string;
   timestamp: number;
+  ragSources?: Array<{
+    id: string;
+    title: string;
+    category: string;
+    similarity: number;
+    snippet: string;
+  }>;
+}
+
+export interface KnowledgeItem {
+  id: string;
+  title: string;
+  category: 'policies' | 'courses' | 'technical' | 'capstone' | 'general';
+  tags: string[];
+  content: string;
+  enabled: boolean;
+  lastUpdated: number;
+  author: string;
+}
+
+export interface AnalyticsSummary {
+  totalRequests: number;
+  successfulRequests: number;
+  failedRequests: number;
+  avgLatencyMs: number;
+  p50LatencyMs: number;
+  p95LatencyMs: number;
+  p99LatencyMs: number;
+  totalTokens: number;
+  promptTokens: number;
+  responseTokens: number;
+  estimatedCostUsd: number;
+  channelDistribution: Record<string, number>;
+  feedback: {
+    positive: number;
+    negative: number;
+    csatPercentage: number;
+  };
+  hourlyTraffic: Array<{ hour: string; count: number; latency: number }>;
 }
 
 export interface IChannelAdapter {

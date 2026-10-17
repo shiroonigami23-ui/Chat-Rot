@@ -27,8 +27,13 @@ import {
   Clock,
   ArrowRight,
   Send,
-  Sliders
+  Sliders,
+  TrendingUp,
+  Zap,
+  Gauge
 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext.tsx';
+import { RateLimitGauge } from './RateLimitGauge.tsx';
 
 const INTEGRATION_SNIPPETS = {
   widget: {
@@ -212,7 +217,9 @@ interface WebhookLogItem {
 }
 
 export const IntegrationHub: React.FC = () => {
-  const [subTab, setSubTab] = useState<'snippets' | 'playground' | 'eventlogs' | 'auth'>('snippets');
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const [subTab, setSubTab] = useState<'snippets' | 'playground' | 'eventlogs' | 'auth' | 'quotas'>('snippets');
   const [selectedSnippet, setSelectedSnippet] = useState<SnippetKey>('widget');
   const [copied, setCopied] = useState<boolean>(false);
 
@@ -452,26 +459,30 @@ export const IntegrationHub: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Overview Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className={`border rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors ${
+        isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-slate-200/50'
+      }`}>
         <div className="max-w-3xl">
-          <div className="flex items-center space-x-2 text-indigo-400 text-xs font-mono mb-1.5">
+          <div className="flex items-center space-x-2 text-indigo-500 text-xs font-mono mb-1.5 font-semibold">
             <Layers className="w-4 h-4" />
-            <span>INTEGRATION GATEWAY & DEVELOPER TOOLKIT</span>
+            <span>INTEGRATION GATEWAY &amp; DEVELOPER TOOLKIT</span>
           </div>
-          <h2 className="text-xl font-bold text-white">System Integrations & API Hub</h2>
-          <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">
-            Universal connectors, real-time webhook event debugger, mock authentication service, and drop-in SDK code for connecting any external client surface to OmniCore.
+          <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>System Integrations &amp; API Hub</h2>
+          <p className={`text-xs sm:text-sm mt-1 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            Universal connectors, real-time rate limit monitors, webhook event debugger, mock authentication service, and drop-in SDK code for connecting any external client surface to OmniCore.
           </p>
         </div>
 
         {/* Sub-Tabs Selector */}
-        <div className="flex flex-wrap p-1 rounded-xl bg-slate-950 border border-slate-800 self-start md:self-auto">
+        <div className={`flex flex-wrap p-1 rounded-xl border self-start md:self-auto ${
+          isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-200'
+        }`}>
           <button
             onClick={() => setSubTab('snippets')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center space-x-1.5 ${
               subTab === 'snippets'
                 ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white'
+                : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Code className="w-3.5 h-3.5" />
@@ -483,7 +494,7 @@ export const IntegrationHub: React.FC = () => {
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center space-x-1.5 ${
               subTab === 'playground'
                 ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white'
+                : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Terminal className="w-3.5 h-3.5" />
@@ -491,16 +502,28 @@ export const IntegrationHub: React.FC = () => {
           </button>
 
           <button
+            onClick={() => setSubTab('quotas')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center space-x-1.5 ${
+              subTab === 'quotas'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Gauge className="w-3.5 h-3.5" />
+            <span>Rate Limits &amp; Quotas</span>
+          </button>
+
+          <button
             onClick={() => setSubTab('eventlogs')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center space-x-1.5 ${
               subTab === 'eventlogs'
                 ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white'
+                : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Activity className="w-3.5 h-3.5" />
             <span className="relative">
-              Webhook Event Log
+              Webhook Events
               {webhookEvents.length > 0 && (
                 <span className="ml-1 px-1.5 py-0.2 rounded-full bg-indigo-500/30 text-[10px] font-mono text-indigo-300">
                   {webhookEvents.length}
@@ -514,11 +537,11 @@ export const IntegrationHub: React.FC = () => {
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center space-x-1.5 ${
               subTab === 'auth'
                 ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white'
+                : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Key className="w-3.5 h-3.5" />
-            <span>Mock Auth Service</span>
+            <span>Mock Auth</span>
           </button>
         </div>
       </div>
@@ -574,6 +597,15 @@ export const IntegrationHub: React.FC = () => {
               </pre>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ---------------------------------------------------- */}
+      {/* SUB-TAB: RATE LIMITS & QUOTA MONITOR */}
+      {/* ---------------------------------------------------- */}
+      {subTab === 'quotas' && (
+        <div className="space-y-6">
+          <RateLimitGauge />
         </div>
       )}
 

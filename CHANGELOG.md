@@ -17,6 +17,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.0] - Advanced Capstone & Observability Enhancements - 2026-10-17
+
+### Added
+- **Knowledge Base & RAG Studio:** In-memory vector database with TF-IDF and semantic similarity indexing.
+- **Automated RAG Grounding:** Automatic retrieval of institutional documents (CS499 rules, GPU cluster guides) with citation badges on model responses.
+- **Live Observability & Analytics Dashboard:** Real-time throughput graphs, tail latency percentiles (p50, p95, p99), token cost estimation, and CSAT rating breakdown.
+- **Traffic Load Simulator:** Interactive burst generator (+25 requests) for live capstone defense demonstrations.
+- **Voice Speech Recognition & TTS:** Web Speech API dictation microphone with audio waveform status and SpeechSynthesis text-to-speech.
+- **Multi-Format Transcript Exporter:** Download conversations in Markdown (`.md`), Standalone Printable HTML (`.html`), or JSON (`.json`).
+- **High-Contrast Theme Switcher:** Instant toggle between Slate-950 dark mode and Presentation Light mode.
+- **Outbound Webhook Dispatcher:** HMAC-SHA256 test emitter to simulate external event delivery.
+
+---
+
 ## [0.1.0] - Phase 1 Foundation - 2026-10-17
 
 ### Added

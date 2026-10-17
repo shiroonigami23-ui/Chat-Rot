@@ -22,9 +22,15 @@ import {
   Download,
   BookOpen,
   Settings2,
-  RefreshCw
+  RefreshCw,
+  Mic,
+  MicOff,
+  Database,
+  FileText,
+  ChevronDown
 } from 'lucide-react';
 import { MarkdownRenderer } from './MarkdownRenderer.tsx';
+import { useTheme } from '../context/ThemeContext.tsx';
 
 export interface ChatMessage {
   id: string;
@@ -42,6 +48,13 @@ export interface ChatMessage {
   rawPayload?: any;
   channelOutput?: any;
   rating?: 'up' | 'down';
+  ragSources?: Array<{
+    id: string;
+    title: string;
+    category: string;
+    similarity: number;
+    snippet: string;
+  }>;
 }
 
 const PRESET_PERSONAS = [
@@ -99,6 +112,8 @@ const CHANNELS = [
 ];
 
 export const ChannelSandbox: React.FC = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [selectedChannel, setSelectedChannel] = useState<string>('web');
   const [selectedPersonaId, setSelectedPersonaId] = useState<string>('academic');
   const [systemPrompt, setSystemPrompt] = useState<string>(PRESET_PERSONAS[0].prompt);
@@ -217,6 +232,7 @@ export const ChannelSandbox: React.FC = () => {
           provider: botData.provider,
           rawPayload: inboundRequest,
           channelOutput: botData.channelOutput,
+          ragSources: botData.ragSources,
         };
 
         setMessages((prev) => [...prev, botMsg]);
@@ -254,6 +270,46 @@ export const ChannelSandbox: React.FC = () => {
     }
   };
 
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [showExportMenu, setShowExportMenu] = useState<boolean>(false);
+
+  const startVoiceDictation = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech Recognition is not supported by your browser engine. Chrome or Edge is recommended.');
+      return;
+    }
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsRecording(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInputMessage((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        setIsRecording(false);
+      };
+
+      recognition.onerror = () => {
+        setIsRecording(false);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.error(err);
+      setIsRecording(false);
+    }
+  };
+
   const copyMessage = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedMsgId(id);
@@ -264,9 +320,14 @@ export const ChannelSandbox: React.FC = () => {
     setMessages((prev) =>
       prev.map((m) => (m.id === id ? { ...m, rating } : m))
     );
+    fetch('/api/v1/analytics/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageId: id, rating }),
+    }).catch(() => {});
   };
 
-  const exportChatSession = (format: 'markdown' | 'json') => {
+  const exportChatSession = (format: 'markdown' | 'json' | 'html') => {
     let output = '';
     let mimeType = 'text/plain';
     let filename = `OmniCore-Session-${sessionId}`;
@@ -275,8 +336,15 @@ export const ChannelSandbox: React.FC = () => {
       output = `# OmniCore Chat Session: ${sessionId}\nChannel: ${selectedChannel} | Persona: ${selectedPersonaId}\nDate: ${new Date().toLocaleString()}\n\n---\n\n`;
       messages.forEach((m) => {
         output += `### ${m.sender === 'user' ? 'Student / User' : 'OmniCore Assistant'} (${new Date(m.timestamp).toLocaleTimeString()})\n${m.text}\n\n`;
+        if (m.ragSources && m.ragSources.length > 0) {
+          output += `> **Cited Sources:** ${m.ragSources.map((s) => `${s.title} (${Math.round(s.similarity * 100)}%)`).join(', ')}\n\n`;
+        }
       });
       filename += '.md';
+    } else if (format === 'html') {
+      output = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>OmniCore Transcript - ${sessionId}</title><style>body{font-family:system-ui,-apple-system,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.6;color:#1e293b;background:#f8fafc}.header{border-bottom:2px solid #e2e8f0;padding-bottom:16px;margin-bottom:24px}.badge{display:inline-block;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;background:#e0e7ff;color:#4338ca}.msg{padding:16px;border-radius:12px;margin-bottom:16px}.user{background:#e0e7ff;border:1px solid #c7d2fe}.bot{background:#fff;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,0.05)}.sender{font-weight:700;font-size:12px;text-transform:uppercase;margin-bottom:6px}.rag{font-size:11px;color:#0891b2;margin-top:8px;padding-top:8px;border-top:1px dashed #e2e8f0;font-family:monospace}</style></head><body><div class="header"><h1>OmniCore Session Transcript</h1><p><span class="badge">Session: ${sessionId}</span> &bull; <strong>Channel:</strong> ${selectedChannel} &bull; <strong>Date:</strong> ${new Date().toLocaleString()}</p></div>${messages.map(m => `<div class="msg ${m.sender}"><div class="sender">${m.sender === 'user' ? 'User' : 'OmniCore Assistant'} &bull; ${new Date(m.timestamp).toLocaleTimeString()}</div><div>${m.text.replace(/\n/g, '<br/>')}</div>${m.ragSources ? `<div class="rag">Cited RAG: ${m.ragSources.map(s => `${s.title} (${Math.round(s.similarity * 100)}%)`).join(' | ')}</div>` : ''}</div>`).join('')}</body></html>`;
+      mimeType = 'text/html';
+      filename += '.html';
     } else {
       output = JSON.stringify({ sessionId, channel: selectedChannel, messages }, null, 2);
       mimeType = 'application/json';
@@ -290,6 +358,7 @@ export const ChannelSandbox: React.FC = () => {
     link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
+    setShowExportMenu(false);
   };
 
   const currentPersona = PRESET_PERSONAS.find((p) => p.id === selectedPersonaId) || PRESET_PERSONAS[0];
@@ -306,13 +375,15 @@ export const ChannelSandbox: React.FC = () => {
       {/* Left Column: Channels & Configuration Sidebar */}
       <div className="lg:col-span-4 space-y-5">
         {/* Channel Selector */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
+        <div className={`p-4 rounded-2xl border transition-colors shadow-sm ${
+          isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-slate-200/50'
+        }`}>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-white flex items-center space-x-2">
-              <Layers className="w-4 h-4 text-indigo-400" />
+            <h3 className={`text-sm font-semibold flex items-center space-x-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <Layers className="w-4 h-4 text-indigo-500" />
               <span>Target Channel Simulator</span>
             </h3>
-            <span className="text-[11px] text-slate-400 font-mono">Normalized Egress</span>
+            <span className={`text-[11px] font-mono ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Normalized Egress</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
@@ -325,15 +396,19 @@ export const ChannelSandbox: React.FC = () => {
                   onClick={() => setSelectedChannel(ch.id)}
                   className={`p-3 rounded-xl border text-left transition-all ${
                     isSelected
-                      ? 'bg-indigo-600/10 border-indigo-500 text-white shadow-sm ring-1 ring-indigo-500/30'
-                      : 'bg-slate-800/40 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                      ? isDark
+                        ? 'bg-indigo-600/10 border-indigo-500 text-white shadow-sm ring-1 ring-indigo-500/30'
+                        : 'bg-indigo-50 border-indigo-500 text-indigo-950 shadow-sm ring-1 ring-indigo-500/30'
+                      : isDark
+                      ? 'bg-slate-800/40 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
                   <div className="flex items-center space-x-2 mb-1">
-                    <Icon className={`w-4 h-4 ${isSelected ? 'text-indigo-400' : 'text-slate-400'}`} />
+                    <Icon className={`w-4 h-4 ${isSelected ? 'text-indigo-500' : isDark ? 'text-slate-400' : 'text-slate-500'}`} />
                     <span className="text-xs font-semibold">{ch.name}</span>
                   </div>
-                  <span className="text-[10px] text-slate-400 block truncate">{ch.badge}</span>
+                  <span className={`text-[10px] block truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{ch.badge}</span>
                 </button>
               );
             })}
@@ -341,17 +416,19 @@ export const ChannelSandbox: React.FC = () => {
         </div>
 
         {/* Persona Selector */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
+        <div className={`p-4 rounded-2xl border transition-colors shadow-sm ${
+          isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-slate-200/50'
+        }`}>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-white flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>System Persona & Directive</span>
+            <h3 className={`text-sm font-semibold flex items-center space-x-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span>System Persona &amp; Directive</span>
             </h3>
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setShowKnowledge(!showKnowledge)}
                 className={`text-xs px-2 py-0.5 rounded font-mono transition-colors ${
-                  showKnowledge ? 'bg-indigo-500/20 text-indigo-300' : 'text-slate-400 hover:text-slate-200'
+                  showKnowledge ? 'bg-indigo-500/20 text-indigo-400 font-bold' : isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600 hover:text-slate-900'
                 }`}
                 title="Inject domain knowledge context"
               >
@@ -359,7 +436,7 @@ export const ChannelSandbox: React.FC = () => {
               </button>
               <button
                 onClick={() => setShowConfig(!showConfig)}
-                className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center space-x-1"
+                className="text-xs text-indigo-500 hover:text-indigo-600 flex items-center space-x-1 font-medium"
               >
                 <Sliders className="w-3.5 h-3.5" />
                 <span>{showConfig ? 'Hide' : 'Tune'}</span>
@@ -455,8 +532,10 @@ export const ChannelSandbox: React.FC = () => {
         </div>
 
         {/* Quick Sample Queries */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
-          <div className="text-xs font-semibold text-slate-300 mb-2 flex items-center justify-between">
+        <div className={`p-4 rounded-2xl border transition-colors shadow-sm ${
+          isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-slate-200/50'
+        }`}>
+          <div className={`text-xs font-semibold mb-2 flex items-center justify-between ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
             <span>Pre-configured Test Prompts</span>
             <span className="text-[10px] text-slate-400">Click to send</span>
           </div>
@@ -466,7 +545,11 @@ export const ChannelSandbox: React.FC = () => {
                 key={idx}
                 onClick={() => handleSendMessage(sample)}
                 disabled={loading}
-                className="w-full text-left p-2 rounded-lg bg-slate-800/40 hover:bg-indigo-950/40 hover:border-indigo-800 border border-slate-800 text-[11px] text-slate-300 transition-colors block truncate"
+                className={`w-full text-left p-2 rounded-lg border text-[11px] transition-colors block truncate ${
+                  isDark
+                    ? 'bg-slate-800/40 hover:bg-indigo-950/40 hover:border-indigo-800 border-slate-800 text-slate-300'
+                    : 'bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 border-slate-200 text-slate-700'
+                }`}
               >
                 "{sample}"
               </button>
@@ -476,9 +559,13 @@ export const ChannelSandbox: React.FC = () => {
       </div>
 
       {/* Right Column: Interactive Chat Canvas */}
-      <div className="lg:col-span-8 flex flex-col h-[740px] bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+      <div className={`lg:col-span-8 flex flex-col h-[740px] border rounded-2xl shadow-xl overflow-hidden transition-colors ${
+        isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-slate-200/60'
+      }`}>
         {/* Chat Header */}
-        <div className="px-5 py-3.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
+        <div className={`px-5 py-3.5 border-b flex items-center justify-between transition-colors ${
+          isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-slate-50 border-slate-200'
+        }`}>
           <div className="flex items-center space-x-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
               selectedChannel === 'slack'
@@ -491,12 +578,14 @@ export const ChannelSandbox: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-semibold text-sm text-white">{currentPersona.name}</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                <span className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{currentPersona.name}</span>
+                <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                  isDark ? 'bg-slate-800 text-slate-300 border-slate-700' : 'bg-slate-100 text-slate-700 border-slate-300'
+                }`}>
                   via #{selectedChannel}
                 </span>
               </div>
-              <span className="text-[11px] text-slate-400">Active Session: {sessionId}</span>
+              <span className={`text-[11px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Active Session: {sessionId}</span>
             </div>
           </div>
 
@@ -517,14 +606,43 @@ export const ChannelSandbox: React.FC = () => {
               {speechEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
 
-            {/* Export Menu */}
-            <button
-              onClick={() => exportChatSession('markdown')}
-              className="text-xs p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
-              title="Download Conversation (.md)"
-            >
-              <Download className="w-4 h-4" />
-            </button>
+            {/* Export Menu with Multi-Format Options */}
+            <div className="relative">
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="text-xs p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors flex items-center space-x-1"
+                title="Export Conversation Transcript"
+              >
+                <Download className="w-4 h-4" />
+                <ChevronDown className="w-3 h-3" />
+              </button>
+
+              {showExportMenu && (
+                <div className="absolute right-0 top-8 z-30 w-44 rounded-xl border border-slate-800 bg-slate-900 shadow-xl p-1.5 space-y-1 text-xs">
+                  <button
+                    onClick={() => exportChatSession('markdown')}
+                    className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center space-x-2 transition-colors"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Markdown (.md)</span>
+                  </button>
+                  <button
+                    onClick={() => exportChatSession('html')}
+                    className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center space-x-2 transition-colors"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Printable HTML (.html)</span>
+                  </button>
+                  <button
+                    onClick={() => exportChatSession('json')}
+                    className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center space-x-2 transition-colors"
+                  >
+                    <Code2 className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Raw Session JSON</span>
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Payload Inspector Button */}
             {inspectedPayload && (
@@ -682,6 +800,28 @@ export const ChannelSandbox: React.FC = () => {
                       <div className="whitespace-pre-wrap leading-relaxed">{msg.text}</div>
                     )}
 
+                    {/* RAG Institutional Knowledge Citations */}
+                    {isBot && msg.ragSources && msg.ragSources.length > 0 && (
+                      <div className="mt-2.5 pt-2 border-t border-slate-800/60">
+                        <div className="flex items-center space-x-1 text-[11px] text-cyan-400 font-semibold mb-1">
+                          <Database className="w-3 h-3" />
+                          <span>Cited Knowledge Base:</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {msg.ragSources.map((src) => (
+                            <span
+                              key={src.id}
+                              className="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[10px] font-mono flex items-center space-x-1"
+                              title={src.snippet}
+                            >
+                              <span>{src.title}</span>
+                              <span className="text-cyan-300 font-bold">({Math.round(src.similarity * 100)}%)</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {isBot && (
                       <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 font-mono">
                         <div className="flex items-center space-x-3">
@@ -798,6 +938,20 @@ export const ChannelSandbox: React.FC = () => {
               disabled={loading}
               className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
             />
+            <button
+              type="button"
+              onClick={startVoiceDictation}
+              className={`p-2.5 rounded-xl border transition-all ${
+                isRecording
+                  ? 'bg-rose-500 text-white animate-pulse border-rose-400 shadow-md shadow-rose-500/30'
+                  : isDark
+                  ? 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
+                  : 'bg-white border-slate-300 text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+              title={isRecording ? 'Listening to voice... Click or speak now' : 'Click to dictate via Voice Speech Input'}
+            >
+              {isRecording ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4" />}
+            </button>
             <button
               type="submit"
               disabled={loading || !inputMessage.trim()}

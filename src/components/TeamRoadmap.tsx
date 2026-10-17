@@ -13,6 +13,8 @@ import {
   ArrowRight
 } from 'lucide-react';
 
+import { useTheme } from '../context/ThemeContext.tsx';
+
 const TEAM_MEMBERS = [
   {
     role: 'Student 1 (Core Pipeline & AI Engine)',
@@ -113,24 +115,29 @@ const PHASES = [
 ];
 
 export const TeamRoadmap: React.FC = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   return (
     <div className="space-y-8">
       {/* Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm">
-        <div className="flex items-center space-x-2 text-indigo-400 text-xs font-mono mb-2">
+      <div className={`p-6 rounded-2xl border transition-colors shadow-sm ${
+        isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-slate-200/50'
+      }`}>
+        <div className="flex items-center space-x-2 text-indigo-500 text-xs font-mono mb-2 font-semibold">
           <Calendar className="w-4 h-4" />
           <span>CAPSTONE 2-MONTH EXECUTION PLAN</span>
         </div>
-        <h2 className="text-xl font-bold text-white mb-1">Team Coordination & Milestones</h2>
-        <p className="text-slate-400 text-xs sm:text-sm leading-relaxed max-w-3xl">
+        <h2 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Team Coordination &amp; Milestones</h2>
+        <p className={`text-xs sm:text-sm leading-relaxed max-w-3xl ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           Designed for a team of 3 students collaborating through GitHub. Work is segregated across the core engine, channel adapters, and developer tooling to eliminate merge conflicts and maintain continuous shipping velocity.
         </p>
       </div>
 
       {/* 3-Student Responsibility Matrix */}
       <div>
-        <h3 className="text-base font-bold text-white flex items-center space-x-2 mb-4">
-          <Users className="w-5 h-5 text-indigo-400" />
+        <h3 className={`text-base font-bold flex items-center space-x-2 mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <Users className="w-5 h-5 text-indigo-500" />
           <span>Team Member Responsibilities (3 Students)</span>
         </h3>
 
@@ -138,7 +145,9 @@ export const TeamRoadmap: React.FC = () => {
           {TEAM_MEMBERS.map((member, idx) => (
             <div
               key={idx}
-              className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm hover:border-slate-700 transition-colors flex flex-col justify-between"
+              className={`p-5 rounded-2xl border transition-colors flex flex-col justify-between ${
+                isDark ? 'bg-slate-900 border-slate-800 hover:border-slate-700' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
+              }`}
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
