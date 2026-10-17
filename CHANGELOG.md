@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add Knowledge Base, Analytics, and theming
+
+- Integrate KnowledgeBaseStudio and AnalyticsDashboard components
+- Implement ThemeContext for light/dark mode support
+- Add theme switcher and UI refinements for high-contrast presentation
+- Update project CHANGELOG and add utility scripts
+
 ### Planned for Phase 2
 - Redis-backed persistent session store for distributed multi-instance deployment.
 - Vector store / RAG integration for uploading university PDF documents and course syllabus.
