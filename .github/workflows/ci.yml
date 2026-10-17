@@ -1,0 +1,43 @@
+name: OmniCore CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    name: Lint, Typecheck, and Build Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: TypeScript Lint & Typecheck
+        run: npm run lint
+
+      - name: Build Application & Bundles
+        run: npm run build
+
+      - name: Verify Documentation Files Exist
+        run: |
+          test -f README.md || exit 1
+          test -f LICENSE || exit 1
+          test -f CONTRIBUTING.md || exit 1
+          test -f CHANGELOG.md || exit 1
+          test -f docs/ARCHITECTURE.md || exit 1
+          test -f docs/API_SPECIFICATION.md || exit 1
+          test -f docs/INTEGRATION_GUIDE.md || exit 1
+          test -f docs/TEAM_MILESTONES.txt || exit 1
+          echo "All required team documents validated successfully."

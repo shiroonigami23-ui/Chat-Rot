@@ -1,0 +1,68 @@
+name: OmniCore Action Bot Integration Verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  action-bot-test:
+    name: End-to-End System Integration Bot
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Start OmniCore Gateway in Background
+        run: |
+          npm run dev &
+          sleep 4
+
+      - name: Action Bot Step 1 - Health & Readiness Check
+        run: |
+          echo "Action Bot: Probing /api/v1/health endpoint..."
+          HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/v1/health)
+          if [ "$HEALTH_STATUS" -ne 200 ]; then
+            echo "ERROR: Health check failed with status $HEALTH_STATUS"
+            exit 1
+          fi
+          echo "Health check PASSED (HTTP 200)."
+
+      - name: Action Bot Step 2 - Universal Chat Payload Validation
+        run: |
+          echo "Action Bot: Executing universal chat message probe..."
+          RESPONSE=$(curl -s -X POST http://localhost:3000/api/v1/chat \
+            -H "Content-Type: application/json" \
+            -d '{"message":"Action bot test handshake","channel":"rest-api","sessionId":"ci_test_sess"}')
+          echo "$RESPONSE" | grep '"success":true' || (echo "Chat endpoint response invalid" && exit 1)
+          echo "Universal Chat validation PASSED."
+
+      - name: Action Bot Step 3 - Channel Inbound Webhook Test
+        run: |
+          echo "Action Bot: Testing Slack and Discord webhook normalizers..."
+          SLACK_RES=$(curl -s -X POST http://localhost:3000/api/v1/webhooks/slack \
+            -H "Content-Type: application/json" \
+            -d '{"type":"event_callback","event":{"type":"app_mention","text":"hello bot","channel":"C123","user":"U123"}}')
+          echo "$SLACK_RES" | grep '"channel":"C123"' || (echo "Slack adapter failed" && exit 1)
+          echo "Channel normalizer test PASSED."
+
+      - name: Action Bot Step 4 - Integration Suite Test
+        run: |
+          echo "Action Bot: Running automated connection matrix..."
+          CONN_RES=$(curl -s -X POST http://localhost:3000/api/v1/test-connection \
+            -H "Content-Type: application/json" \
+            -d '{"adapter":"web"}')
+          echo "$CONN_RES" | grep '"status":"PASSED"' || (echo "Connection matrix test failed" && exit 1)
+          echo "Action Bot: All integration checks passed with zero errors!"

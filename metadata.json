@@ -1,0 +1,6 @@
+{
+  "name": "OmniCore Universal Chatbot System",
+  "description": "An extensible, universal AI chatbot engine and integration gateway with multi-channel adapters, REST/Webhook APIs, automated verification bot, and complete capstone documentation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,69 @@
+================================================================================
+OMNICORE CAPSTONE PROJECT: 2-MONTH MILESTONES & TEAM RESPONSIBILITY MATRIX
+================================================================================
+College Senior Design / Final Year Capstone Project
+Project Duration: 8 Weeks (2 Months) | Team Size: 3 Students
+Lead Tech Stack: TypeScript, Node.js, Express, React, Vite, Tailwind CSS, Gemini API
+
+--------------------------------------------------------------------------------
+1. TEAM MEMBER RESPONSIBILITIES
+--------------------------------------------------------------------------------
+
+STUDENT 1 (Core Pipeline & AI Engine):
+- Prompt pipeline design & system instruction personas.
+- Integration of Google GenAI SDK (gemini-3.8-flash) on server-side.
+- Fallback deterministic simulation logic for offline/test environments.
+- Multi-turn conversation context window & token budget limits.
+- Model performance benchmarking (latency, token efficiency, response quality).
+
+STUDENT 2 (Channel Adapters & Webhook Gateway):
+- Inbound normalizers: Slack BlockKit/Event API, Discord interaction webhooks.
+- REST API endpoint specifications & contract enforcement.
+- Outbound egress formatters (Markdown, Slack Blocks, Discord Embeds).
+- Webhook signature verification (HMAC SHA-256) and security sanitization.
+- Python and Node.js client SDK libraries for external developers.
+
+STUDENT 3 (Developer Studio & CI/CD Verification Bot):
+- Interactive React Developer Portal & multi-channel sandbox UI.
+- Action Bot automated integration test suite (/api/v1/test-connection).
+- GitHub Actions CI workflows (.github/workflows/ci.yml, bot-verification.yml).
+- In-app documentation browser & embed snippet generator.
+- Release engineering, packaging, and final capstone demonstration deck.
+
+--------------------------------------------------------------------------------
+2. EIGHT-WEEK SPRINT SCHEDULE (2 MONTHS)
+--------------------------------------------------------------------------------
+
+[PHASE 1: FOUNDATION & CORE ARCHITECTURE] - Weeks 1 & 2 (CURRENT STAGE)
+  - Deliverable 1.1: Express API Gateway with /api/v1/chat and /api/v1/health.
+  - Deliverable 1.2: Channel adapter interfaces (Web, REST, Slack, Discord).
+  - Deliverable 1.3: Gemini API client initialization with simulation fallback.
+  - Deliverable 1.4: Repository organization, README, CONTRIBUTING, LICENSE, docs.
+  - Deliverable 1.5: Action Bot integration test suite and CI workflows.
+  - Deliverable 1.6: Developer Studio UI for real-time testing and inspection.
+
+[PHASE 2: ADAPTER HARDENING & REAL WEBHOOKS] - Weeks 3 & 4
+  - Deliverable 2.1: Live Slack App OAuth connection and Socket Mode runner.
+  - Deliverable 2.2: Discord bot gateway listener and slash command registration.
+  - Deliverable 2.3: Persistent session cache implementation (Redis/Postgres).
+  - Deliverable 2.4: Rate limiting (token bucket algorithm) and API key auth.
+
+[PHASE 3: KNOWLEDGE BASE / RAG & TOOL INTEGRATION] - Weeks 5 & 6
+  - Deliverable 3.1: Document parser for University course catalogs and FAQ PDFs.
+  - Deliverable 3.2: Vector similarity search (Gemini Embeddings + local vector store).
+  - Deliverable 3.3: Function calling tools (Query campus library, check exam schedules).
+  - Deliverable 3.4: Automated guardrails against jailbreaks and prompt injection.
+
+[PHASE 4: BENCHMARKING, EVALUATION & CAPSTONE DEFENSE] - Weeks 7 & 8
+  - Deliverable 4.1: End-to-end integration stress tests (50 concurrent channels).
+  - Deliverable 4.2: Evaluation metrics report (BLEU, ROUGE, Latency, Fallback rate).
+  - Deliverable 4.3: Final Capstone report, system demo video, and presentation slides.
+  - Deliverable 4.4: v1.0.0 Tagged Release and public GitHub repository submission.
+
+--------------------------------------------------------------------------------
+3. WEEKLY TEAM SYNC CHECKPOINTS
+--------------------------------------------------------------------------------
+- Every Monday 10:00 AM: Sprint planning & PR backlog grooming.
+- Every Thursday 4:00 PM: Mid-week code review & adapter integration testing.
+- Every Friday 5:00 PM: Main branch freeze, CI verification check, and Changelog update.
+================================================================================
