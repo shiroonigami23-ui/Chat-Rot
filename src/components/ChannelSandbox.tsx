@@ -15,10 +15,16 @@ import {
   Layers, 
   Check, 
   Copy, 
-  ExternalLink,
-  ChevronDown,
-  ChevronUp
+  Volume2,
+  VolumeX,
+  ThumbsUp,
+  ThumbsDown,
+  Download,
+  BookOpen,
+  Settings2,
+  RefreshCw
 } from 'lucide-react';
+import { MarkdownRenderer } from './MarkdownRenderer.tsx';
 
 export interface ChatMessage {
   id: string;
@@ -35,6 +41,7 @@ export interface ChatMessage {
   provider?: string;
   rawPayload?: any;
   channelOutput?: any;
+  rating?: 'up' | 'down';
 }
 
 const PRESET_PERSONAS = [
@@ -95,10 +102,14 @@ export const ChannelSandbox: React.FC = () => {
   const [selectedChannel, setSelectedChannel] = useState<string>('web');
   const [selectedPersonaId, setSelectedPersonaId] = useState<string>('academic');
   const [systemPrompt, setSystemPrompt] = useState<string>(PRESET_PERSONAS[0].prompt);
+  const [knowledgeBase, setKnowledgeBase] = useState<string>('CS499 Capstone Project proposal deadline: November 15. Requires completion of CS350 and CS330 with C or higher.');
   const [temperature, setTemperature] = useState<number>(0.7);
   const [userId, setUserId] = useState<string>('student_4019');
   const [sessionId, setSessionId] = useState<string>(`sess_${Date.now().toString(36).slice(-6)}`);
+  
   const [showConfig, setShowConfig] = useState<boolean>(false);
+  const [showKnowledge, setShowKnowledge] = useState<boolean>(false);
+  const [speechEnabled, setSpeechEnabled] = useState<boolean>(false);
   const [inspectedPayload, setInspectedPayload] = useState<{ inbound: any; outbound: any } | null>(null);
 
   const [inputMessage, setInputMessage] = useState<string>('');
@@ -106,7 +117,7 @@ export const ChannelSandbox: React.FC = () => {
     {
       id: 'welcome_1',
       sender: 'bot',
-      text: "👋 Welcome to the **OmniCore Universal Chatbot Sandbox**!\n\nThis interface demonstrates real-time normalization across channels. You can switch personas, change the target channel (Web, Slack, Discord, REST), or inspect the underlying gateway payload in real time.",
+      text: "👋 Welcome to the **OmniCore Universal Chatbot Sandbox**!\n\nThis interface demonstrates real-time normalization across channels. You can switch personas, change the target channel (Web, Slack, Discord, REST), inject custom knowledge snippets, or inspect the underlying gateway payload in real time.",
       channel: 'web',
       timestamp: Date.now() - 2000,
       latencyMs: 120,
@@ -116,6 +127,7 @@ export const ChannelSandbox: React.FC = () => {
   ]);
   const [loading, setLoading] = useState<boolean>(false);
   const [copiedPayload, setCopiedPayload] = useState<boolean>(false);
+  const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -129,6 +141,16 @@ export const ChannelSandbox: React.FC = () => {
     if (p) {
       setSystemPrompt(p.prompt);
     }
+  };
+
+  const speakText = (text: string) => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/[*#`_]/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    window.speechSynthesis.speak(utterance);
   };
 
   const handleSendMessage = async (textToSend?: string) => {
@@ -154,17 +176,22 @@ export const ChannelSandbox: React.FC = () => {
         parts: [{ text: m.text }],
       }));
 
+    const finalSystemPrompt = knowledgeBase.trim()
+      ? `${systemPrompt}\n\n[Knowledge Base Context / Directives]:\n${knowledgeBase}`
+      : systemPrompt;
+
     const inboundRequest = {
       message: text,
       channel: selectedChannel,
       userId,
       sessionId,
-      systemPrompt,
+      systemPrompt: finalSystemPrompt,
       temperature,
       history: historyPayload,
       metadata: {
         clientTimestamp: Date.now(),
         clientAgent: 'OmniCore-Sandbox/1.0',
+        knowledgeBaseAttached: Boolean(knowledgeBase.trim()),
       },
     };
 
@@ -197,6 +224,10 @@ export const ChannelSandbox: React.FC = () => {
           inbound: inboundRequest,
           outbound: botData,
         });
+
+        if (speechEnabled) {
+          speakText(botData.reply);
+        }
       } else {
         const errorMsg: ChatMessage = {
           id: `err_${Date.now()}`,
@@ -223,6 +254,44 @@ export const ChannelSandbox: React.FC = () => {
     }
   };
 
+  const copyMessage = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedMsgId(id);
+    setTimeout(() => setCopiedMsgId(null), 1500);
+  };
+
+  const rateMessage = (id: string, rating: 'up' | 'down') => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, rating } : m))
+    );
+  };
+
+  const exportChatSession = (format: 'markdown' | 'json') => {
+    let output = '';
+    let mimeType = 'text/plain';
+    let filename = `OmniCore-Session-${sessionId}`;
+
+    if (format === 'markdown') {
+      output = `# OmniCore Chat Session: ${sessionId}\nChannel: ${selectedChannel} | Persona: ${selectedPersonaId}\nDate: ${new Date().toLocaleString()}\n\n---\n\n`;
+      messages.forEach((m) => {
+        output += `### ${m.sender === 'user' ? 'Student / User' : 'OmniCore Assistant'} (${new Date(m.timestamp).toLocaleTimeString()})\n${m.text}\n\n`;
+      });
+      filename += '.md';
+    } else {
+      output = JSON.stringify({ sessionId, channel: selectedChannel, messages }, null, 2);
+      mimeType = 'application/json';
+      filename += '.json';
+    }
+
+    const blob = new Blob([output], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const currentPersona = PRESET_PERSONAS.find((p) => p.id === selectedPersonaId) || PRESET_PERSONAS[0];
 
   const copyPayloadJson = () => {
@@ -243,7 +312,7 @@ export const ChannelSandbox: React.FC = () => {
               <Layers className="w-4 h-4 text-indigo-400" />
               <span>Target Channel Simulator</span>
             </h3>
-            <span className="text-[11px] text-slate-400 font-mono">Adapter Normalizer</span>
+            <span className="text-[11px] text-slate-400 font-mono">Normalized Egress</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
@@ -278,13 +347,24 @@ export const ChannelSandbox: React.FC = () => {
               <Sparkles className="w-4 h-4 text-amber-400" />
               <span>System Persona & Directive</span>
             </h3>
-            <button
-              onClick={() => setShowConfig(!showConfig)}
-              className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center space-x-1"
-            >
-              <Sliders className="w-3.5 h-3.5" />
-              <span>{showConfig ? 'Hide Settings' : 'Edit Prompt'}</span>
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setShowKnowledge(!showKnowledge)}
+                className={`text-xs px-2 py-0.5 rounded font-mono transition-colors ${
+                  showKnowledge ? 'bg-indigo-500/20 text-indigo-300' : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Inject domain knowledge context"
+              >
+                + Knowledge
+              </button>
+              <button
+                onClick={() => setShowConfig(!showConfig)}
+                className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center space-x-1"
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                <span>{showConfig ? 'Hide' : 'Tune'}</span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -308,6 +388,29 @@ export const ChannelSandbox: React.FC = () => {
               </button>
             ))}
           </div>
+
+          {/* Knowledge Context Drawer */}
+          {showKnowledge && (
+            <div className="mt-4 pt-4 border-t border-slate-800">
+              <label className="text-[11px] font-semibold text-indigo-300 flex items-center justify-between mb-1">
+                <span className="flex items-center space-x-1">
+                  <BookOpen className="w-3 h-3" />
+                  <span>Knowledge Base Ingestion (RAG Grounding)</span>
+                </span>
+                <span className="text-[9px] text-slate-400 font-mono">Custom Rules</span>
+              </label>
+              <textarea
+                rows={3}
+                value={knowledgeBase}
+                onChange={(e) => setKnowledgeBase(e.target.value)}
+                placeholder="Paste course syllabus notes, policy snippet, or API schema here..."
+                className="w-full text-xs bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono"
+              />
+              <span className="text-[10px] text-slate-400 block mt-1">
+                The bot immediately incorporates this text into its responses.
+              </span>
+            </div>
+          )}
 
           {/* Config Drawer */}
           {showConfig && (
@@ -373,7 +476,7 @@ export const ChannelSandbox: React.FC = () => {
       </div>
 
       {/* Right Column: Interactive Chat Canvas */}
-      <div className="lg:col-span-8 flex flex-col h-[700px] bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+      <div className="lg:col-span-8 flex flex-col h-[740px] bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
         {/* Chat Header */}
         <div className="px-5 py-3.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -398,6 +501,32 @@ export const ChannelSandbox: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-2">
+            {/* Speech Toggle */}
+            <button
+              onClick={() => {
+                setSpeechEnabled(!speechEnabled);
+                if (speechEnabled && 'speechSynthesis' in window) {
+                  window.speechSynthesis.cancel();
+                }
+              }}
+              className={`p-1.5 rounded-lg text-xs font-mono transition-colors ${
+                speechEnabled ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+              }`}
+              title={speechEnabled ? 'Mute Speech Synthesis' : 'Enable Voice Audio Output'}
+            >
+              {speechEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            </button>
+
+            {/* Export Menu */}
+            <button
+              onClick={() => exportChatSession('markdown')}
+              className="text-xs p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+              title="Download Conversation (.md)"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+
+            {/* Payload Inspector Button */}
             {inspectedPayload && (
               <button
                 onClick={() => setInspectedPayload(inspectedPayload ? null : inspectedPayload)}
@@ -405,7 +534,7 @@ export const ChannelSandbox: React.FC = () => {
                 title="Inspect Universal Gateway JSON Payload"
               >
                 <Code2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Inspect Payload</span>
+                <span className="hidden sm:inline">Inspect</span>
               </button>
             )}
 
@@ -436,23 +565,47 @@ export const ChannelSandbox: React.FC = () => {
               // Slack Style Card
               if (selectedChannel === 'slack' && isBot) {
                 return (
-                  <div key={msg.id} className="flex space-x-3 p-3 bg-slate-900/90 border border-slate-800 rounded-xl">
+                  <div key={msg.id} className="flex space-x-3 p-3.5 bg-slate-900/90 border border-slate-800 rounded-xl">
                     <div className="w-9 h-9 rounded bg-[#4A154B] flex items-center justify-center text-white shrink-0 font-bold text-xs">
                       BOT
                     </div>
                     <div className="flex-1 text-xs">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="font-bold text-slate-200">OmniCore App</span>
-                        <span className="text-[10px] px-1 rounded bg-slate-800 text-slate-400 font-mono">APP</span>
-                        <span className="text-[10px] text-slate-500">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-bold text-slate-200">OmniCore App</span>
+                          <span className="text-[10px] px-1 rounded bg-slate-800 text-slate-400 font-mono">APP</span>
+                          <span className="text-[10px] text-slate-500">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                        </div>
+
+                        <div className="flex items-center space-x-1.5 text-slate-400">
+                          <button
+                            onClick={() => copyMessage(msg.text, msg.id)}
+                            className="hover:text-white transition-colors"
+                            title="Copy message"
+                          >
+                            {copiedMsgId === msg.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                          <button
+                            onClick={() => speakText(msg.text)}
+                            className="hover:text-white transition-colors"
+                            title="Speak out loud"
+                          >
+                            <Volume2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="text-slate-300 whitespace-pre-wrap leading-relaxed font-sans">
-                        {msg.text}
+
+                      <div className="text-slate-300 leading-relaxed font-sans mt-1">
+                        <MarkdownRenderer content={msg.text} />
                       </div>
-                      <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center space-x-3 text-[10px] text-slate-400 font-mono">
-                        <span>BlockKit: 2 blocks</span>
-                        {msg.latencyMs && <span>{msg.latencyMs}ms</span>}
-                        {msg.tokens && <span>{msg.tokens.totalTokens} tokens</span>}
+
+                      <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                        <div className="flex items-center space-x-3">
+                          <span>BlockKit Egress</span>
+                          {msg.latencyMs && <span>{msg.latencyMs}ms</span>}
+                          {msg.tokens && <span>{msg.tokens.totalTokens} tokens</span>}
+                        </div>
+                        <span className="text-indigo-400">{msg.provider || 'Gateway'}</span>
                       </div>
                     </div>
                   </div>
@@ -462,19 +615,38 @@ export const ChannelSandbox: React.FC = () => {
               // Discord Style Card
               if (selectedChannel === 'discord' && isBot) {
                 return (
-                  <div key={msg.id} className="flex space-x-3 p-3 bg-[#313338]/90 border border-[#2b2d31] rounded-xl">
+                  <div key={msg.id} className="flex space-x-3 p-3.5 bg-[#313338]/90 border border-[#2b2d31] rounded-xl">
                     <div className="w-9 h-9 rounded-full bg-[#5865F2] flex items-center justify-center text-white shrink-0 font-bold text-xs">
                       🤖
                     </div>
                     <div className="flex-1 text-xs">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="font-bold text-[#f2f3f5]">OmniCore Discord Bot</span>
-                        <span className="text-[10px] px-1 rounded bg-[#5865f2] text-white font-medium">BOT</span>
-                        <span className="text-[10px] text-[#949ba4]">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-bold text-[#f2f3f5]">OmniCore Discord Bot</span>
+                          <span className="text-[10px] px-1 rounded bg-[#5865f2] text-white font-medium">BOT</span>
+                          <span className="text-[10px] text-[#949ba4]">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                        <div className="flex items-center space-x-1.5 text-slate-400">
+                          <button
+                            onClick={() => copyMessage(msg.text, msg.id)}
+                            className="hover:text-white transition-colors"
+                            title="Copy message"
+                          >
+                            {copiedMsgId === msg.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                          <button
+                            onClick={() => speakText(msg.text)}
+                            className="hover:text-white transition-colors"
+                            title="Speak out loud"
+                          >
+                            <Volume2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
+
                       <div className="border-l-4 border-[#5865F2] pl-3 py-1 bg-[#2b2d31]/60 rounded-r-lg mt-1">
-                        <div className="text-slate-200 whitespace-pre-wrap leading-relaxed font-sans">
-                          {msg.text}
+                        <div className="text-slate-200 leading-relaxed font-sans">
+                          <MarkdownRenderer content={msg.text} />
                         </div>
                         <div className="mt-2 text-[10px] text-[#949ba4] font-mono flex items-center space-x-2">
                           <span>Discord Embed • {msg.latencyMs}ms</span>
@@ -498,17 +670,21 @@ export const ChannelSandbox: React.FC = () => {
                   )}
 
                   <div
-                    className={`max-w-[80%] rounded-2xl p-4 text-xs shadow-sm ${
+                    className={`max-w-[85%] rounded-2xl p-4 text-xs shadow-sm ${
                       isBot
                         ? 'bg-slate-900 border border-slate-800 text-slate-200'
                         : 'bg-indigo-600 text-white rounded-br-none'
                     }`}
                   >
-                    <div className="whitespace-pre-wrap leading-relaxed">{msg.text}</div>
+                    {isBot ? (
+                      <MarkdownRenderer content={msg.text} />
+                    ) : (
+                      <div className="whitespace-pre-wrap leading-relaxed">{msg.text}</div>
+                    )}
 
                     {isBot && (
-                      <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                        <div className="flex items-center space-x-2">
+                      <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                        <div className="flex items-center space-x-3">
                           {msg.latencyMs && (
                             <span className="flex items-center space-x-1">
                               <Clock className="w-3 h-3 text-slate-500" />
@@ -516,8 +692,44 @@ export const ChannelSandbox: React.FC = () => {
                             </span>
                           )}
                           {msg.tokens && <span>• {msg.tokens.totalTokens} toks</span>}
+                          <span className="text-indigo-400">{msg.provider || 'Gateway'}</span>
                         </div>
-                        <span className="text-indigo-400">{msg.provider || 'Gateway'}</span>
+
+                        {/* Interactive Message Toolbar */}
+                        <div className="flex items-center space-x-1">
+                          <button
+                            onClick={() => copyMessage(msg.text, msg.id)}
+                            className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                            title="Copy message"
+                          >
+                            {copiedMsgId === msg.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                          </button>
+                          <button
+                            onClick={() => speakText(msg.text)}
+                            className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                            title="Speak out loud"
+                          >
+                            <Volume2 className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => rateMessage(msg.id, 'up')}
+                            className={`p-1 rounded hover:bg-slate-800 transition-colors ${
+                              msg.rating === 'up' ? 'text-emerald-400' : 'text-slate-400 hover:text-white'
+                            }`}
+                            title="Good response"
+                          >
+                            <ThumbsUp className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => rateMessage(msg.id, 'down')}
+                            className={`p-1 rounded hover:bg-slate-800 transition-colors ${
+                              msg.rating === 'down' ? 'text-rose-400' : 'text-slate-400 hover:text-white'
+                            }`}
+                            title="Poor response"
+                          >
+                            <ThumbsDown className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>

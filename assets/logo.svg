@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+  <defs>
+    <linearGradient id="omniGrad" x1="0" y1="0" x2="240" y2="240" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F46E5"/>
+      <stop offset="0.5" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#EC4899"/>
+    </linearGradient>
+    <linearGradient id="coreGlow" x1="70" y1="70" x2="170" y2="170" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38BDF8"/>
+      <stop offset="1" stop-color="#818CF8"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Rounded Shield -->
+  <rect x="12" y="12" width="216" height="216" rx="48" fill="#0B0F19" stroke="url(#omniGrad)" stroke-width="4"/>
+  
+  <!-- Outer Connection Nodes (Representing Universal Channels: Web, Slack, Discord, REST) -->
+  <circle cx="120" cy="46" r="10" fill="#38BDF8" opacity="0.9"/>
+  <circle cx="194" cy="120" r="10" fill="#818CF8" opacity="0.9"/>
+  <circle cx="120" cy="194" r="10" fill="#A855F7" opacity="0.9"/>
+  <circle cx="46" cy="120" r="10" fill="#EC4899" opacity="0.9"/>
+
+  <!-- Connecting Bus Lines -->
+  <path d="M120 56 V92" stroke="#475569" stroke-width="3" stroke-dasharray="4 3"/>
+  <path d="M184 120 H148" stroke="#475569" stroke-width="3" stroke-dasharray="4 3"/>
+  <path d="M120 184 V148" stroke="#475569" stroke-width="3" stroke-dasharray="4 3"/>
+  <path d="M56 120 H92" stroke="#475569" stroke-width="3" stroke-dasharray="4 3"/>
+
+  <!-- Central Cognitive Core (Chatbot Engine) -->
+  <rect x="76" y="80" width="88" height="80" rx="24" fill="url(#coreGlow)" opacity="0.15" stroke="url(#coreGlow)" stroke-width="2.5"/>
+  
+  <!-- Robot Eyes / Friendly AI Visor -->
+  <rect x="94" y="104" width="16" height="18" rx="8" fill="#38BDF8"/>
+  <rect x="130" y="104" width="16" height="18" rx="8" fill="#38BDF8"/>
+  
+  <!-- Neural Smile Pulse -->
+  <path d="M106 138 Q120 148 134 138" stroke="#F8FAFC" stroke-width="3" stroke-linecap="round"/>
+</svg>

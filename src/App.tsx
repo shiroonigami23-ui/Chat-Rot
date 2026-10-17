@@ -10,7 +10,7 @@ import { IntegrationHub } from './components/IntegrationHub.tsx';
 import { DocExplorer } from './components/DocExplorer.tsx';
 import { ActionBotVerifier } from './components/ActionBotVerifier.tsx';
 import { TeamRoadmap } from './components/TeamRoadmap.tsx';
-import { Bot, Terminal, GitBranch, Github, Shield, Heart } from 'lucide-react';
+import { FloatingWidgetSimulator } from './components/FloatingWidgetSimulator.tsx';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'sandbox' | 'integrations' | 'docs' | 'actionbot' | 'roadmap'>('sandbox');
@@ -41,7 +41,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500/30 selection:text-white">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500/30 selection:text-white relative">
       {/* Top Navbar */}
       <Header
         activeTab={activeTab}
@@ -57,6 +57,9 @@ export default function App() {
         {activeTab === 'actionbot' && <ActionBotVerifier />}
         {activeTab === 'roadmap' && <TeamRoadmap />}
       </main>
+
+      {/* Live Floating Drop-In Widget Simulator */}
+      <FloatingWidgetSimulator />
 
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950/80 py-6 text-xs text-slate-500">

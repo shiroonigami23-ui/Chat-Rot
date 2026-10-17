@@ -73,6 +73,14 @@ Detailed architectural diagrams, sequence flows, and design trade-offs are docum
 │   └── workflows/
 │       ├── ci.yml                 # PR validation, linting, build test
 │       └── bot-verification.yml   # Action Bot automated integration tests
+├── assets/                        # Brand vectors, architecture diagrams & logos
+│   ├── logo.svg                   # Core project logo
+│   └── architecture-diagram.svg   # Architectural pipeline diagram
+├── backend/                       # Modular Backend Architecture
+│   ├── adapters/                  # Channel adapters (Web, Slack, Discord, REST, Webhooks)
+│   ├── core/                      # Cognitive pipeline, session store, Gemini AI engine
+│   ├── routes/                    # API router (/api/v1/*)
+│   └── types/                     # Canonical typed interfaces & contracts
 ├── docs/
 │   ├── ARCHITECTURE.md            # Deep dive into system internals & dataflow
 │   ├── API_SPECIFICATION.md       # OpenAPI / REST payload contract details
@@ -80,11 +88,11 @@ Detailed architectural diagrams, sequence flows, and design trade-offs are docum
 │   ├── SECURITY_MODEL.md          # Auth, HMAC, sanitization & guardrails
 │   └── TEAM_MILESTONES.txt        # 8-week team roadmap & role breakdown
 ├── src/                           # Frontend Developer Studio & Test Portal
-│   ├── components/                # Modular React components
+│   ├── components/                # React components (Sandbox, Widget, Docs, Action Bot)
 │   ├── sdk/                       # Universal Bot Client SDK
 │   ├── App.tsx                    # Studio dashboard & management interface
 │   └── main.tsx                   # Client entry point
-├── server.ts                      # Express API Gateway & Vite dev bridge
+├── server.ts                      # Express API Gateway entry point & Vite dev bridge
 ├── CHANGELOG.md                   # Release notes and sprint history
 ├── CONTRIBUTING.md                # Collaboration workflow for team members
 ├── LICENSE                        # Open-source MIT license

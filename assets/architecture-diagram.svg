@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 440" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="880" y2="440" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#020617"/>
+      <stop offset="1" stop-color="#0B0F19"/>
+    </linearGradient>
+    <linearGradient id="boxGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#1E293B"/>
+      <stop offset="1" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#4F46E5"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="880" height="440" rx="16" fill="url(#bgGrad)" stroke="#1E293B" stroke-width="2"/>
+
+  <!-- Title & Subtitle -->
+  <text x="40" y="44" fill="#F8FAFC" font-family="system-ui, sans-serif" font-size="20" font-weight="bold">OmniCore Universal Chatbot Architecture</text>
+  <text x="40" y="68" fill="#94A3B8" font-family="monospace" font-size="12">Decoupled Channel Adapters → Normalization Gateway → Cognitive Engine → Egress Formatter</text>
+
+  <!-- Layer 1: Client Ingress (Left) -->
+  <g transform="translate(40, 100)">
+    <rect width="180" height="300" rx="12" fill="url(#boxGrad)" stroke="#334155" stroke-width="1.5"/>
+    <text x="20" y="32" fill="#38BDF8" font-family="system-ui" font-size="13" font-weight="bold">1. Ingress Clients</text>
+    
+    <rect x="16" y="52" width="148" height="46" rx="8" fill="#1E293B" stroke="#475569"/>
+    <text x="28" y="76" fill="#E2E8F0" font-family="monospace" font-size="11">Web Widget (JS)</text>
+    <text x="28" y="90" fill="#64748B" font-family="monospace" font-size="9">Script Tag / React Hook</text>
+
+    <rect x="16" y="110" width="148" height="46" rx="8" fill="#1E293B" stroke="#475569"/>
+    <text x="28" y="134" fill="#E2E8F0" font-family="monospace" font-size="11">Slack Events</text>
+    <text x="28" y="148" fill="#64748B" font-family="monospace" font-size="9">app_mention / Slash</text>
+
+    <rect x="16" y="168" width="148" height="46" rx="8" fill="#1E293B" stroke="#475569"/>
+    <text x="28" y="192" fill="#E2E8F0" font-family="monospace" font-size="11">Discord Webhook</text>
+    <text x="28" y="206" fill="#64748B" font-family="monospace" font-size="9">Interaction Payload</text>
+
+    <rect x="16" y="226" width="148" height="46" rx="8" fill="#1E293B" stroke="#475569"/>
+    <text x="28" y="250" fill="#E2E8F0" font-family="monospace" font-size="11">REST / Python / Go</text>
+    <text x="28" y="264" fill="#64748B" font-family="monospace" font-size="9">POST /api/v1/chat</text>
+  </g>
+
+  <!-- Layer 2: Normalization Adapters -->
+  <g transform="translate(250, 100)">
+    <rect width="180" height="300" rx="12" fill="url(#boxGrad)" stroke="#4F46E5" stroke-width="1.5"/>
+    <text x="20" y="32" fill="#818CF8" font-family="system-ui" font-size="13" font-weight="bold">2. Normalizer Layer</text>
+
+    <rect x="16" y="52" width="148" height="70" rx="8" fill="#0F172A" stroke="#334155"/>
+    <text x="24" y="74" fill="#F8FAFC" font-family="monospace" font-size="10" font-weight="bold">IChannelAdapter</text>
+    <text x="24" y="92" fill="#94A3B8" font-family="monospace" font-size="9">normalizeInbound()</text>
+    <text x="24" y="108" fill="#94A3B8" font-family="monospace" font-size="9">formatOutbound()</text>
+
+    <rect x="16" y="136" width="148" height="136" rx="8" fill="#0F172A" stroke="#334155"/>
+    <text x="24" y="160" fill="#C084FC" font-family="monospace" font-size="10" font-weight="bold">UniversalInbound</text>
+    <text x="24" y="178" fill="#64748B" font-family="monospace" font-size="9">messageId: UUID</text>
+    <text x="24" y="194" fill="#64748B" font-family="monospace" font-size="9">channel: string</text>
+    <text x="24" y="210" fill="#64748B" font-family="monospace" font-size="9">userId: string</text>
+    <text x="24" y="226" fill="#64748B" font-family="monospace" font-size="9">sessionId: string</text>
+    <text x="24" y="242" fill="#64748B" font-family="monospace" font-size="9">content: text</text>
+    <text x="24" y="258" fill="#64748B" font-family="monospace" font-size="9">history: turns[]</text>
+  </g>
+
+  <!-- Layer 3: Cognitive Engine & Session Store -->
+  <g transform="translate(460, 100)">
+    <rect width="180" height="300" rx="12" fill="url(#boxGrad)" stroke="#7C3AED" stroke-width="1.5"/>
+    <text x="20" y="32" fill="#A78BFA" font-family="system-ui" font-size="13" font-weight="bold">3. Cognitive Pipeline</text>
+
+    <rect x="16" y="52" width="148" height="60" rx="8" fill="#0F172A" stroke="#334155"/>
+    <text x="24" y="74" fill="#38BDF8" font-family="monospace" font-size="10" font-weight="bold">Session Store</text>
+    <text x="24" y="92" fill="#64748B" font-family="monospace" font-size="9">LRU Memory Cache</text>
+    <text x="24" y="104" fill="#64748B" font-family="monospace" font-size="9">Context Window Sync</text>
+
+    <rect x="16" y="126" width="148" height="60" rx="8" fill="#0F172A" stroke="#334155"/>
+    <text x="24" y="148" fill="#F43F5E" font-family="monospace" font-size="10" font-weight="bold">Guardrails</text>
+    <text x="24" y="164" fill="#64748B" font-family="monospace" font-size="9">Sanitization &amp; Limits</text>
+    <text x="24" y="176" fill="#64748B" font-family="monospace" font-size="9">Token Budgeting</text>
+
+    <rect x="16" y="200" width="148" height="72" rx="8" fill="#4338CA" stroke="#6366F1"/>
+    <text x="24" y="222" fill="#FFFFFF" font-family="system-ui" font-size="11" font-weight="bold">Gemini 3.8 Flash</text>
+    <text x="24" y="238" fill="#C7D2FE" font-family="monospace" font-size="9">@google/genai SDK</text>
+    <text x="24" y="252" fill="#E0E7FF" font-family="monospace" font-size="9">Simulation Fallback</text>
+  </g>
+
+  <!-- Layer 4: Egress Formatter -->
+  <g transform="translate(670, 100)">
+    <rect width="170" height="300" rx="12" fill="url(#boxGrad)" stroke="#10B981" stroke-width="1.5"/>
+    <text x="16" y="32" fill="#34D399" font-family="system-ui" font-size="13" font-weight="bold">4. Channel Egress</text>
+
+    <rect x="12" y="52" width="146" height="46" rx="8" fill="#1E293B" stroke="#334155"/>
+    <text x="20" y="74" fill="#F8FAFC" font-family="monospace" font-size="10">Markdown Egress</text>
+    <text x="20" y="88" fill="#64748B" font-family="monospace" font-size="9">Rendered in Web Widget</text>
+
+    <rect x="12" y="110" width="146" height="46" rx="8" fill="#1E293B" stroke="#334155"/>
+    <text x="20" y="132" fill="#F8FAFC" font-family="monospace" font-size="10">Slack BlockKit</text>
+    <text x="20" y="146" fill="#64748B" font-family="monospace" font-size="9">{ blocks: [sections] }</text>
+
+    <rect x="12" y="168" width="146" height="46" rx="8" fill="#1E293B" stroke="#334155"/>
+    <text x="20" y="190" fill="#F8FAFC" font-family="monospace" font-size="10">Discord Embeds</text>
+    <text x="20" y="204" fill="#64748B" font-family="monospace" font-size="9">{ embeds: [fields] }</text>
+
+    <rect x="12" y="226" width="146" height="46" rx="8" fill="#1E293B" stroke="#334155"/>
+    <text x="20" y="248" fill="#F8FAFC" font-family="monospace" font-size="10">Universal JSON</text>
+    <text x="20" y="262" fill="#64748B" font-family="monospace" font-size="9">REST Clients / Python</text>
+  </g>
+
+  <!-- Connective Arrows -->
+  <path d="M 220 250 L 250 250" stroke="#6366F1" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M 430 250 L 460 250" stroke="#8B5CF6" stroke-width="2"/>
+  <path d="M 640 250 L 670 250" stroke="#10B981" stroke-width="2"/>
+</svg>
