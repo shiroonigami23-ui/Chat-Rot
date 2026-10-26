@@ -21,7 +21,9 @@ import {
   ExternalLink,
   Sparkles,
   Search,
-  Code2
+  Code2,
+  Download,
+  Info
 } from 'lucide-react';
 
 import { useTheme } from '../context/ThemeContext.tsx';

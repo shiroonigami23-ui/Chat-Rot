@@ -661,6 +661,8 @@ apiRouter.get('/docs-content', (req: Request, res: Response) => {
     { id: 'security', name: 'docs/SECURITY_MODEL.md', path: 'docs/SECURITY_MODEL.md' },
     { id: 'ci_workflow', name: '.github/workflows/ci.yml', path: '.github/workflows/ci.yml' },
     { id: 'bot_workflow', name: '.github/workflows/bot-verification.yml', path: '.github/workflows/bot-verification.yml' },
+    { id: 'changelog_bot_wf', name: '.github/workflows/changelog-bot.yml', path: '.github/workflows/changelog-bot.yml' },
+    { id: 'changelog_script', name: 'scripts/update-changelog.js', path: 'scripts/update-changelog.js' },
   ];
 
   const results = docFiles.map((doc) => {
