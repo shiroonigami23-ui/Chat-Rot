@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Add changelog automation and UI enhancements
+
+- Integrate changelog generation workflow and script
+- Add download and info utilities to DocExplorer
+- Default DocExplorer view to changelog
+- Update component icon set for better navigation
 - Add Knowledge Base, Analytics, and theming
 
 - Integrate KnowledgeBaseStudio and AnalyticsDashboard components
