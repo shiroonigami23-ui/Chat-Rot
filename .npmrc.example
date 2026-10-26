@@ -1,0 +1,3 @@
+# Configuration for installing and publishing @shiroonigami23-ui/chat-rot via GitHub Packages
+@shiroonigami23-ui:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}

@@ -2,22 +2,22 @@ import React from 'react';
 import { 
   Bot, 
   Terminal, 
-  CheckCircle2, 
   Activity, 
   BookOpen, 
   Share2, 
   Calendar, 
-  Users,
   Sun,
   Moon,
   Database,
-  BarChart3
+  BarChart3,
+  Package,
+  Sparkles
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext.tsx';
 
 interface HeaderProps {
-  activeTab: 'sandbox' | 'integrations' | 'knowledge' | 'analytics' | 'docs' | 'actionbot' | 'roadmap';
-  setActiveTab: (tab: 'sandbox' | 'integrations' | 'knowledge' | 'analytics' | 'docs' | 'actionbot' | 'roadmap') => void;
+  activeTab: 'sandbox' | 'releases' | 'integrations' | 'knowledge' | 'analytics' | 'docs' | 'actionbot' | 'roadmap';
+  setActiveTab: (tab: 'sandbox' | 'releases' | 'integrations' | 'knowledge' | 'analytics' | 'docs' | 'actionbot' | 'roadmap') => void;
   systemHealth: {
     status: string;
     uptimeSeconds: number;
@@ -37,20 +37,20 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, systemH
         <div className="flex items-center justify-between h-16">
           {/* Logo & Project Branding */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 flex items-center justify-center text-white shadow-lg shadow-blue-500/25">
               <Bot className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <span className={`font-bold text-lg tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  OmniCore
+                  ChatRot
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 font-mono font-semibold">
-                  Phase 1: Foundation
+                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-mono font-semibold">
+                  v1.0.0
                 </span>
               </div>
               <p className={`text-xs hidden sm:block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                Universal Chatbot Engine &amp; Integration Gateway (College Capstone)
+                Multi-Channel Chat Gateway &amp; Developer Platform
               </p>
             </div>
           </div>
@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, systemH
               onClick={() => setActiveTab('sandbox')}
               className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center space-x-1.5 ${
                 activeTab === 'sandbox'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
                   : isDark
                   ? 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -72,10 +72,25 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, systemH
             </button>
 
             <button
+              onClick={() => setActiveTab('releases')}
+              className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center space-x-1.5 ${
+                activeTab === 'releases'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
+                  : isDark
+                  ? 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Package className="w-4 h-4" />
+              <span className="hidden sm:inline">Releases &amp; Packages</span>
+              <span className="sm:hidden">Releases</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('integrations')}
               className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center space-x-1.5 ${
                 activeTab === 'integrations'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
                   : isDark
                   ? 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -90,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, systemH
               onClick={() => setActiveTab('knowledge')}
               className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center space-x-1.5 ${
                 activeTab === 'knowledge'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
                   : isDark
                   ? 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -105,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, systemH
               onClick={() => setActiveTab('analytics')}
               className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center space-x-1.5 ${
                 activeTab === 'analytics'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
                   : isDark
                   ? 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -120,7 +135,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, systemH
               onClick={() => setActiveTab('docs')}
               className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center space-x-1.5 ${
                 activeTab === 'docs'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
                   : isDark
                   ? 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -134,7 +149,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, systemH
               onClick={() => setActiveTab('actionbot')}
               className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center space-x-1.5 ${
                 activeTab === 'actionbot'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
                   : isDark
                   ? 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -154,7 +169,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, systemH
               onClick={() => setActiveTab('roadmap')}
               className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center space-x-1.5 ${
                 activeTab === 'roadmap'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20'
                   : isDark
                   ? 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'

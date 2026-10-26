@@ -1,8 +1,25 @@
 {
-  "name": "react-example",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@shiroonigami23-ui/chat-rot",
+  "version": "1.0.0",
+  "description": "Clean, extensible multi-channel chat gateway and developer platform for web, Slack, Discord, and webhook integrations.",
   "type": "module",
+  "main": "server.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shiroonigami23-ui/Chat-Rot.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "keywords": [
+    "chatbot",
+    "gateway",
+    "messaging",
+    "slack",
+    "discord",
+    "webhooks",
+    "developer-tools"
+  ],
   "scripts": {
     "dev": "tsx server.ts",
     "start": "node server.ts",

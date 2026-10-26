@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the OmniCore Universal Chatbot project will be documented in this file.
+All notable changes to the ChatRot project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -9,25 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Add changelog automation and UI enhancements
-
-- Integrate changelog generation workflow and script
-- Add download and info utilities to DocExplorer
-- Default DocExplorer view to changelog
-- Update component icon set for better navigation
-- Add Knowledge Base, Analytics, and theming
-
-- Integrate KnowledgeBaseStudio and AnalyticsDashboard components
-- Implement ThemeContext for light/dark mode support
-- Add theme switcher and UI refinements for high-contrast presentation
-- Update project CHANGELOG and add utility scripts
-
 ### Planned for Phase 2
 - Redis-backed persistent session store for distributed multi-instance deployment.
 - Vector store / RAG integration for uploading university PDF documents and course syllabus.
 - Bi-directional Slack Socket Mode and Discord Gateway bot workers.
 - OAuth 2.0 Client Credentials flow for enterprise CRM integrations.
+
+---
+
+## [1.0.0] - Production Release & GitHub Packages - 2026-10-25
+
+### Added
+- **GitHub Release Automation:** Added `.github/workflows/release.yml` with automated asset bundling (`.tar.gz`, `.zip`) and CHANGELOG parsing.
+- **GitHub Packages (NPM Registry):** Configured `@shiroonigami23-ui/chat-rot` package in `package.json` with `.github/workflows/publish-package.yml` and `.npmrc.example`.
+- **Interactive Releases & Packages Hub:** In-app management console with direct GitHub 1-click release creation, pre-filled release notes, and install guides.
+- **Clean UI & Professional Identity:** Renamed project to ChatRot, eliminating artificial AI buzzwords and robotic acronyms in favor of clean developer-grade terminology.
+- **Theme-Responsive Chat Sandbox:** Streamlined message thread and input bar with support for light and dark modes.
 
 ---
 

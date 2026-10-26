@@ -7,7 +7,7 @@ export const FloatingWidgetSimulator: React.FC = () => {
   const [messages, setMessages] = useState<Array<{ sender: 'user' | 'bot'; text: string; time: string }>>([
     {
       sender: 'bot',
-      text: 'Hi there! 👋 I am the **OmniCore Web Embed Widget**. You can drop me onto any website with a single `<script>` tag.',
+      text: 'Hi there! 👋 I am the **ChatRot Web Embed Widget**. You can drop me onto any website with a single `<script>` tag.',
       time: 'Just now',
     },
   ]);
@@ -46,7 +46,7 @@ export const FloatingWidgetSimulator: React.FC = () => {
           message: text,
           channel: 'web',
           sessionId: 'widget_embed_session',
-          systemPrompt: 'You are the embedded web assistant for OmniCore. Keep responses concise, friendly, and structured.',
+          systemPrompt: 'You are the embedded web assistant for ChatRot. Keep responses concise, direct, helpful, and professional.',
         }),
       });
 
@@ -79,33 +79,33 @@ export const FloatingWidgetSimulator: React.FC = () => {
     <div className="fixed bottom-6 right-6 z-50 select-none">
       {/* Widget Window */}
       {isOpen && (
-        <div className="w-80 sm:w-96 h-[500px] bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden mb-3 animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="w-80 sm:w-96 h-[500px] bg-white border border-slate-200/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden mb-3 animate-in fade-in slide-in-from-bottom-4 duration-200 ring-1 ring-black/5">
           {/* Header */}
-          <div className="px-4 py-3 bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-600 text-white flex items-center justify-between">
+          <div className="px-4 py-3.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 text-white flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
                 <Bot className="w-4 h-4 text-white" />
               </div>
               <div>
                 <div className="text-xs font-bold leading-tight flex items-center space-x-1.5">
-                  <span>Campus Assistant</span>
+                  <span>ChatRot Assistant</span>
                   <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
                 </div>
-                <div className="text-[10px] text-indigo-100 font-mono">OmniCore Web Embed</div>
+                <div className="text-[10px] text-blue-100 font-mono">Live Web Embed</div>
               </div>
             </div>
 
             <div className="flex items-center space-x-1">
               <button
                 onClick={() => setMessages([messages[0]])}
-                className="p-1 rounded hover:bg-white/10 text-white/80 hover:text-white transition-colors"
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/80 hover:text-white transition-colors"
                 title="Reset conversation"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1 rounded hover:bg-white/10 text-white/80 hover:text-white transition-colors"
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/80 hover:text-white transition-colors"
                 title="Close widget"
               >
                 <X className="w-4 h-4" />
@@ -114,7 +114,7 @@ export const FloatingWidgetSimulator: React.FC = () => {
           </div>
 
           {/* Messages Body */}
-          <div className="flex-1 p-3.5 overflow-y-auto space-y-3 bg-slate-950/50">
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-gradient-to-b from-slate-50/60 to-white">
             {messages.map((m, idx) => (
               <div
                 key={idx}
@@ -123,39 +123,39 @@ export const FloatingWidgetSimulator: React.FC = () => {
                 <div
                   className={`max-w-[85%] rounded-2xl p-3 text-xs shadow-sm ${
                     m.sender === 'user'
-                      ? 'bg-indigo-600 text-white rounded-br-none'
-                      : 'bg-slate-800 border border-slate-700 text-slate-200 rounded-bl-none'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-none shadow-blue-500/20'
+                      : 'bg-white border border-slate-200/90 text-slate-800 rounded-bl-none shadow-slate-200/50'
                   }`}
                 >
                   <MarkdownRenderer content={m.text} />
                 </div>
-                <span className="text-[9px] text-slate-500 mt-1 px-1 font-mono">{m.time}</span>
+                <span className="text-[9px] text-slate-400 mt-1 px-1 font-mono">{m.time}</span>
               </div>
             ))}
 
             {loading && (
-              <div className="flex items-center space-x-2 text-xs text-slate-400 bg-slate-800/60 p-2.5 rounded-xl border border-slate-800 w-fit">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
-                <span className="text-[11px]">Assistant is generating response...</span>
+              <div className="flex items-center space-x-2 text-xs text-slate-600 bg-white p-2.5 rounded-xl border border-slate-200 shadow-xs w-fit">
+                <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
+                <span className="text-[11px] font-medium">ChatRot is typing...</span>
               </div>
             )}
             <div ref={chatEndRef} />
           </div>
 
           {/* Input Footer */}
-          <form onSubmit={handleSend} className="p-2.5 bg-slate-900 border-t border-slate-800 flex items-center space-x-2">
+          <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-200/80 flex items-center space-x-2">
             <input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Ask a question..."
               disabled={loading}
-              className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              className="flex-1 bg-slate-50 border border-slate-200/90 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             />
             <button
               type="submit"
               disabled={loading || !inputValue.trim()}
-              className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white transition-all shadow-md shadow-indigo-600/20"
+              className="p-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 text-white transition-all shadow-md shadow-blue-500/20"
             >
               <Send className="w-3.5 h-3.5" />
             </button>

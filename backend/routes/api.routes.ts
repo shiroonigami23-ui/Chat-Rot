@@ -662,6 +662,9 @@ apiRouter.get('/docs-content', (req: Request, res: Response) => {
     { id: 'ci_workflow', name: '.github/workflows/ci.yml', path: '.github/workflows/ci.yml' },
     { id: 'bot_workflow', name: '.github/workflows/bot-verification.yml', path: '.github/workflows/bot-verification.yml' },
     { id: 'changelog_bot_wf', name: '.github/workflows/changelog-bot.yml', path: '.github/workflows/changelog-bot.yml' },
+    { id: 'release_wf', name: '.github/workflows/release.yml', path: '.github/workflows/release.yml' },
+    { id: 'publish_pkg_wf', name: '.github/workflows/publish-package.yml', path: '.github/workflows/publish-package.yml' },
+    { id: 'npmrc_example', name: '.npmrc.example', path: '.npmrc.example' },
     { id: 'changelog_script', name: 'scripts/update-changelog.js', path: 'scripts/update-changelog.js' },
   ];
 
@@ -946,5 +949,77 @@ apiRouter.post('/actionbot/simulate-changelog', (req: Request, res: Response) =>
     },
   });
 });
+
+// 11. Release & GitHub Packages Manager
+apiRouter.get('/release-info', (req: Request, res: Response) => {
+  const changelogPath = path.resolve(projectRoot, 'CHANGELOG.md');
+  const packageJsonPath = path.resolve(projectRoot, 'package.json');
+  
+  let changelog = '';
+  let pkgData: any = {};
+  
+  try {
+    if (fs.existsSync(changelogPath)) {
+      changelog = fs.readFileSync(changelogPath, 'utf8');
+    }
+    if (fs.existsSync(packageJsonPath)) {
+      pkgData = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+    }
+  } catch (err) {
+    // ignore
+  }
+
+  // Extract Unreleased notes
+  const unreleasedMatch = changelog.match(/## \[Unreleased\]([\s\S]*?)(?=## \[|$)/i);
+  const unreleasedNotes = unreleasedMatch ? unreleasedMatch[1].trim() : '';
+
+  // Extract latest version notes (e.g., 0.2.0 or 0.1.0)
+  const versionMatch = changelog.match(/## \[(\d+\.\d+\.\d+)\][^\n]*\n([\s\S]*?)(?=## \[|$)/);
+  const latestReleasedVersion = versionMatch ? versionMatch[1] : '0.2.0';
+  const latestReleasedNotes = versionMatch ? versionMatch[2].trim() : '';
+
+  const suggestedTag = 'v1.0.0';
+  const suggestedTitle = 'ChatRot v1.0.0 - Production Chatbot Platform';
+  const combinedReleaseNotes = [
+    `# ChatRot Release ${suggestedTag}`,
+    '',
+    '## What\'s New in this Release',
+    unreleasedNotes || '- Complete multi-channel chat gateway and developer platform\n- Web, Slack, Discord, and Webhook adapter support\n- Knowledge base retrieval and indexing\n- Live analytics and token usage tracking',
+    '',
+    `## Previous Milestones (v${latestReleasedVersion})`,
+    latestReleasedNotes.slice(0, 500) + '...',
+  ].join('\n');
+
+  res.json({
+    success: true,
+    repo: {
+      owner: 'shiroonigami23-ui',
+      repoName: 'Chat-Rot',
+      fullName: 'shiroonigami23-ui/Chat-Rot',
+      url: 'https://github.com/shiroonigami23-ui/Chat-Rot',
+      newReleaseUrl: `https://github.com/shiroonigami23-ui/Chat-Rot/releases/new?tag=${suggestedTag}&title=${encodeURIComponent(suggestedTitle)}&body=${encodeURIComponent(combinedReleaseNotes)}`,
+      packagesUrl: 'https://github.com/shiroonigami23-ui/Chat-Rot/packages',
+    },
+    suggestedRelease: {
+      tag: suggestedTag,
+      title: suggestedTitle,
+      body: combinedReleaseNotes,
+      prerelease: false,
+    },
+    packageInfo: {
+      packageName: pkgData.name || '@shiroonigami23-ui/chat-rot',
+      version: pkgData.version || '1.0.0',
+      registry: 'https://npm.pkg.github.com',
+      scope: '@shiroonigami23-ui',
+      installCommand: 'npm install @shiroonigami23-ui/chat-rot',
+      publishCommand: 'npm publish',
+    },
+    workflows: {
+      releaseWorkflowPath: '.github/workflows/release.yml',
+      publishPackageWorkflowPath: '.github/workflows/publish-package.yml',
+    },
+  });
+});
+
 
 

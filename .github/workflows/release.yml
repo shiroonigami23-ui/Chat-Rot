@@ -1,0 +1,100 @@
+name: Release & Asset Distribution
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+      prerelease:
+        description: 'Mark as pre-release'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-release:
+    name: Build & Publish GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint & typecheck
+        run: npm run lint
+
+      - name: Build production bundles
+        run: npm run build
+
+      - name: Determine Release Tag
+        id: release_tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract Release Notes from CHANGELOG.md
+        id: release_notes
+        run: |
+          TAG="${{ steps.release_tag.outputs.tag }}"
+          CLEAN_VERSION="${TAG#v}"
+          echo "Extracting release notes for version: $CLEAN_VERSION"
+          
+          # If version exists in CHANGELOG.md, extract section; otherwise fallback to recent Unreleased changes
+          if grep -q "## \[$CLEAN_VERSION\]" CHANGELOG.md; then
+            sed -n "/## \[$CLEAN_VERSION\]/,/## \[/p" CHANGELOG.md | sed '$d' > RELEASE_NOTES.md
+          else
+            sed -n '/## \[Unreleased\]/,/## \[/p' CHANGELOG.md | sed '$d' > RELEASE_NOTES.md
+          fi
+          
+          if [ ! -s RELEASE_NOTES.md ]; then
+            echo "Automated release $TAG for ChatRot Chatbot Gateway." > RELEASE_NOTES.md
+          fi
+          
+          cat RELEASE_NOTES.md
+
+      - name: Package Release Distribution Bundles
+        run: |
+          mkdir -p dist-package
+          cp -r dist dist-package/
+          cp -r scripts dist-package/
+          cp package.json README.md LICENSE CHANGELOG.md dist-package/
+          
+          # Create compressed release archive assets
+          tar -czvf "chat-rot-${{ steps.release_tag.outputs.tag }}-bundle.tar.gz" -C dist-package .
+          zip -r "chat-rot-${{ steps.release_tag.outputs.tag }}-bundle.zip" dist-package/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          name: "ChatRot Release ${{ steps.release_tag.outputs.tag }}"
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease || false }}
+          files: |
+            chat-rot-${{ steps.release_tag.outputs.tag }}-bundle.tar.gz
+            chat-rot-${{ steps.release_tag.outputs.tag }}-bundle.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

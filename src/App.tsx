@@ -13,12 +13,13 @@ import { TeamRoadmap } from './components/TeamRoadmap.tsx';
 import { KnowledgeBaseStudio } from './components/KnowledgeBaseStudio.tsx';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard.tsx';
 import { FloatingWidgetSimulator } from './components/FloatingWidgetSimulator.tsx';
+import { ReleasesHub } from './components/ReleasesHub.tsx';
 import { ThemeProvider, useTheme } from './context/ThemeContext.tsx';
 
 function MainApp() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const [activeTab, setActiveTab] = useState<'sandbox' | 'integrations' | 'knowledge' | 'analytics' | 'docs' | 'actionbot' | 'roadmap'>('sandbox');
+  const [activeTab, setActiveTab] = useState<'sandbox' | 'releases' | 'integrations' | 'knowledge' | 'analytics' | 'docs' | 'actionbot' | 'roadmap'>('sandbox');
   const [systemHealth, setSystemHealth] = useState<{
     status: string;
     uptimeSeconds: number;
@@ -33,21 +34,23 @@ function MainApp() {
         setSystemHealth({
           status: data.status || 'healthy',
           uptimeSeconds: data.uptimeSeconds || 0,
-          aiProvider: data.aiProvider || 'Universal Gateway',
+          aiProvider: data.aiProvider || 'ChatRot Gateway',
         });
       })
       .catch(() => {
         setSystemHealth({
           status: 'online',
           uptimeSeconds: 1,
-          aiProvider: 'Universal Gateway',
+          aiProvider: 'ChatRot Gateway',
         });
       });
   }, []);
 
   return (
     <div className={`min-h-screen flex flex-col font-sans selection:bg-indigo-500/30 selection:text-white relative transition-colors duration-200 ${
-      isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'
+      isDark 
+        ? 'bg-slate-950 text-slate-100' 
+        : 'bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 text-slate-900'
     }`}>
       {/* Top Navbar with Theme Switcher */}
       <Header
@@ -59,6 +62,7 @@ function MainApp() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'sandbox' && <ChannelSandbox />}
+        {activeTab === 'releases' && <ReleasesHub />}
         {activeTab === 'integrations' && <IntegrationHub />}
         {activeTab === 'knowledge' && <KnowledgeBaseStudio />}
         {activeTab === 'analytics' && <AnalyticsDashboard />}
@@ -78,20 +82,26 @@ function MainApp() {
           <div className="flex items-center space-x-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span className={`font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>
-              OmniCore Universal Chatbot System
+              ChatRot Gateway Platform
             </span>
             <span>•</span>
-            <span>College Capstone Project</span>
+            <span>shiroonigami23-ui/Chat-Rot</span>
             <span>•</span>
-            <span className="font-mono text-[11px] text-indigo-500 font-medium">Phase 1 Foundation</span>
+            <span className="font-mono text-[11px] text-emerald-500 font-medium">v1.0.0 Ready</span>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <button
+              onClick={() => setActiveTab('releases')}
+              className={`transition-colors ${isDark ? 'hover:text-slate-300' : 'hover:text-slate-900'}`}
+            >
+              Releases &amp; Packages
+            </button>
             <button
               onClick={() => setActiveTab('knowledge')}
               className={`transition-colors ${isDark ? 'hover:text-slate-300' : 'hover:text-slate-900'}`}
             >
-              Knowledge RAG
+              Knowledge Base
             </button>
             <button
               onClick={() => setActiveTab('analytics')}
