@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Rebrand to ChatRot and add release management
+
+- Rebrand project to "ChatRot" across documentation, metadata, and UI
+- Add ReleasesHub component and backend API for deployment tracking
+- Configure GitHub Packages and release automation workflows
+
 ### Planned for Phase 2
 - Redis-backed persistent session store for distributed multi-instance deployment.
 - Vector store / RAG integration for uploading university PDF documents and course syllabus.
